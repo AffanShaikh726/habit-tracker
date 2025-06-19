@@ -1,59 +1,31 @@
-# HabitTracker
+# Habit Tracker
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 19.2.9.
+A modern, user-friendly habit tracking application built with Angular and Firebase. Track your daily habits, monitor your progress, and build better routines.
 
-## Development server
+## Features
 
-To start a local development server, run:
+- 📊 Track daily habits and monitor your progress
+- 🔐 Secure user authentication with Firebase
+- 📱 Responsive design that works on all devices
+- 📅 Calendar view for habit tracking
+- 📈 Progress visualization and statistics
+- 🔔 Reminder notifications
 
-```bash
-ng serve
+## Project Structure
+
+```
+src/
+├── app/
+│   ├── components/     # Shared components
+│   ├── pages/          # Feature pages
+│   ├── services/       # Application services
+│   ├── guards/         # Route guards
+│   ├── models/         # TypeScript interfaces/models
+│   └── app.module.ts   # Root module
+├── assets/             # Static assets
+└── environments/       # Environment configurations
 ```
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+## License
 
-## Code scaffolding
-
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
-
-```bash
-ng generate component component-name
-```
-
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
-
-```bash
-ng generate --help
-```
-
-## Building
-
-To build the project run:
-
-```bash
-ng build
-```
-
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
-
-## Running unit tests
-
-To execute unit tests with the [Karma](https://karma-runner.github.io) test runner, use the following command:
-
-```bash
-ng test
-```
-
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
-
-```bash
-ng e2e
-```
-
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

@@ -1,0 +1,39 @@
+.title-with-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  
+  .icon {
+    display: inline-flex;
+    align-items: center;
+    color: #3b82f6; // Default blue color
+    
+    svg {
+      width: 1.25em;
+      height: 1.25em;
+    }
+  }
+  
+  .gradient-text {
+    background-clip: text;
+    -webkit-background-clip: text;
+    background-size: 100%;
+    background-image: linear-gradient(90deg, #3b82f6, #8b5cf6);
+    -webkit-text-fill-color: transparent;
+    -moz-text-fill-color: transparent;
+  }
+}
+
+/* Dark theme overrides */
+@media (prefers-color-scheme: dark) {
+  .title-with-icon {
+    .icon {
+      color: #60a5fa; // Lighter blue for dark mode
+    }
+    
+    .gradient-text {
+      background-image: linear-gradient(90deg, #60a5fa, #a78bfa);
+    }
+  }
+}

@@ -1,0 +1,147 @@
+<app-header (logout)="onLogout()"></app-header>
+
+<div class="card bg-base-200 shadow-xl">
+  <div class="card-body p-0">
+    <div class="tabs-boxed bg-base-300 rounded-t-xl flex items-center justify-between px-2">
+      <div class="tabs">
+        <a class="tab font-bold" routerLink="/dashboard">Statistics</a>
+        <a class="tab tab-active font-bold">Tracker</a>
+        <a class="tab font-bold" routerLink="/manage">Manage</a>
+      </div>
+      <div class="relative">
+        <button class="btn btn-ghost btn-sm" (click)="toggleThemeMenu()">
+          {{ themeIcons[currentTheme] }}
+        </button>
+        <div *ngIf="isThemeMenuOpen" class="absolute right-0 mt-2 w-32 bg-base-100 rounded-lg shadow-lg z-10 border border-base-300">
+          <ng-container *ngFor="let theme of themes">
+            <div class="px-4 py-2 hover:bg-base-200 cursor-pointer flex items-center" (click)="setTheme(theme)">
+              <span class="mr-2">{{ themeIcons[theme] }}</span>
+              <span class="capitalize">{{ theme }}</span>
+            </div>
+          </ng-container>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Toast Notification -->
+    <div class="fixed bottom-4 right-4 z-50 w-full max-w-xs" *ngIf="showAlert">
+      <div class="alert shadow-lg" [ngClass]="{
+        'alert-success': alertType === 'success',
+        'alert-error': alertType === 'error'
+      }">
+        <div>
+          <svg *ngIf="alertType === 'success'" xmlns="http://www.w3.org/2000/svg" class="stroke-current flex-shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <svg *ngIf="alertType === 'error'" xmlns="http://www.w3.org/2000/svg" class="stroke-current flex-shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <span>{{alertMessage}}</span>
+        </div>
+      </div>
+    </div>
+    
+    <div class="p-4">
+      <ng-container *ngIf="habits$ | async as habits">
+        <ng-container *ngIf="habits.length === 0; else hasHabits">
+          <div class="text-center py-8">
+            <p class="text-lg mb-4">No habits created yet</p>
+            <a routerLink="/manage" class="btn btn-primary">Create your first habit</a>
+          </div>
+        </ng-container>
+        
+        <ng-template #hasHabits>
+          <div class="mb-6">
+            <div class="flex items-center mb-4">
+              <ng-container *ngFor="let habit of habits">
+                <div class="mr-2 cursor-pointer" (click)="selectHabit(habit)">
+                  <div 
+                    class="w-12 h-12 flex items-center justify-center rounded-lg" 
+                    [style.background-color]="habit.color"
+                    [class.ring-4]="selectedHabit?.id === habit.id">
+                    <span class="text-white font-bold text-xl">{{ habit.name.charAt(0) }}</span>
+                  </div>
+                </div>
+              </ng-container>
+            </div>
+            
+            <ng-container *ngIf="selectedHabit">
+              <h2 class="text-2xl font-bold mb-4">{{ selectedHabit.name }}</h2>
+              
+              <!-- Week Navigation -->
+              <div class="flex justify-between items-center mb-4">
+                <button class="btn btn-circle btn-sm" (click)="previousWeek()">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                  </svg>
+                </button>
+                
+                <button class="btn btn-sm" (click)="goToToday()">Today</button>
+                
+                <button class="btn btn-circle btn-sm" (click)="nextWeek()">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
+              </div>
+              
+              <div class="card bg-base-100 shadow-md">
+                <div class="card-body">
+                  <h3 class="text-xl font-semibold text-center mb-4">Week of {{ currentDate | date:'MMM d, yyyy' }}</h3>
+                  
+                  <div class="grid grid-cols-7 gap-2 text-center">
+                    <div class="font-medium">Mon</div>
+                    <div class="font-medium">Tue</div>
+                    <div class="font-medium">Wed</div>
+                    <div class="font-medium">Thu</div>
+                    <div class="font-medium">Fri</div>
+                    <div class="font-medium">Sat</div>
+                    <div class="font-medium">Sun</div>
+                    
+                    <ng-container *ngIf="weeklyData$ | async as weekData">
+                      <ng-container *ngFor="let day of weekData">
+                        <div class="relative">
+                          <div class="relative">
+                            <div 
+                              class="aspect-square border-2 rounded-md flex items-center justify-center transition-colors duration-200 hover:scale-105"
+                              [ngStyle]="{
+                                'background-color': day.completed ? day.color : 'transparent',
+                                'color': day.completed ? 'white' : 'inherit'
+                              }"
+                              [ngClass]="{
+                                'text-white': day.completed,
+                                'hover:opacity-20': !day.completed && isToday(day.date),
+                                'hover:opacity-80': day.completed && isToday(day.date),
+                                'cursor-pointer': isToday(day.date),
+                                'opacity-50': !isToday(day.date)
+                              }"
+                              (click)="toggleDayCompletion(day)"
+                              [class.tooltip]="isToday(day.date)"
+                              [attr.data-tip]="isToday(day.date) ? 'Click to mark as ' + (day.completed ? 'incomplete' : 'complete') : null"
+                              [attr.data-tip-placement]="isToday(day.date) ? 'bottom' : null"
+                            >
+                              {{ day.date | date:'d' }}
+                            </div>
+                          </div>
+                          
+                        </div>
+                      </ng-container>
+                    </ng-container>
+                  </div>
+                  
+                  <div class="flex items-center justify-end mt-4">
+                    <div class="text-sm">
+                      <ng-container *ngIf="weeklyData$ | async as weekData">
+                        This week: {{ getCompletedDaysCount(weekData) }}/7 days
+                      </ng-container>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </ng-container>
+          </div>
+        </ng-template>
+      </ng-container>
+    </div>
+  </div>
+</div>

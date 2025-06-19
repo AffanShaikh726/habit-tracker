@@ -1,0 +1,147 @@
+<app-header (logout)="onLogout()"></app-header>
+
+<div class="card bg-base-200 shadow-xl">
+  <div class="card-body p-0">
+    <div class="tabs-boxed bg-base-300 rounded-t-xl flex items-center justify-between px-2">
+      <div class="tabs">
+        <a class="tab font-bold" routerLink="/dashboard">Statistics</a>
+        <a class="tab font-bold" routerLink="/statistics">Tracker</a>
+        <a class="tab tab-active font-bold">Manage</a>
+      </div>
+      <div class="relative">
+        <button class="btn btn-ghost btn-sm" (click)="toggleThemeMenu()">
+          {{ themeIcons[currentTheme] }}
+        </button>
+        <div *ngIf="isThemeMenuOpen" class="absolute right-0 mt-2 w-32 bg-base-100 rounded-lg shadow-lg z-10 border border-base-300">
+          <div *ngFor="let theme of themes" 
+               class="px-4 py-2 hover:bg-base-200 cursor-pointer flex items-center"
+               (click)="setTheme(theme)">
+            <span class="mr-2">{{ themeIcons[theme] }}</span>
+            <span class="capitalize">{{ theme }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="p-4">
+      <div class="mb-8 p-6 rounded-lg border-2 border-base-300">
+        <h2 class="text-2xl font-bold mb-4">+ Create New Habit</h2>
+        
+        <form (ngSubmit)="createHabit()" class="space-y-4">
+          <div class="form-control">
+            <label class="label">
+              <span class="label-text font-bold">Habit Name</span>
+            </label>
+            <input 
+              type="text" 
+              placeholder="e.g., Read for 30 minutes, Exercise, Meditate..." 
+              class="input input-bordered w-full" 
+              [(ngModel)]="newHabit.name"
+              name="habitName"
+              required
+            />
+          </div>
+          
+          <div class="form-control">
+            <label class="label">
+              <span class="label-text font-bold">Choose Color</span>
+            </label>
+            <div class="flex flex-wrap gap-4">
+              <div *ngFor="let color of availableColors" 
+                   class="w-full md:w-auto flex-1">
+                <div 
+                  class="rounded-lg p-3 border-2 border-base-300 hover:border-base-content/20 transition-all duration-300 cursor-pointer group hover:shadow-lg hover:-translate-y-1"
+                  [class.ring-2]="newHabit.color === color.value"
+                  [class.ring-primary]="newHabit.color === color.value"
+                  [class.ring-offset-1]="newHabit.color === color.value"
+                  (click)="selectColor(color.value)">
+                  <div class="flex flex-col items-center justify-center p-2">
+                    <div 
+                      class="w-6 h-6 rounded-full mb-1 border-2 border-base-200 group-hover:scale-110 transition-transform duration-300" 
+                      [style.background-color]="color.value">
+                    </div>
+                    <span class="text-sm font-medium text-base-content/80 group-hover:text-base-content transition-colors duration-300">
+                      {{ color.name }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <button type="submit" class="btn btn-success btn-block text-white">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            </svg>
+            Create Habit
+          </button>
+        </form>
+      </div>
+      
+      <div *ngIf="habits.length > 0">
+        <h2 class="text-2xl font-bold mb-4">Manage Existing Habits</h2>
+        
+        <div class="space-y-4">
+          <div *ngFor="let habit of habits" class="card bg-base-100 shadow-md">
+            <div class="card-body">
+              <div class="flex justify-between items-center">
+                <div class="flex items-center">
+                  <div class="w-4 h-4 rounded-full mr-4" [style.background-color]="habit.color"></div>
+                  <h3 class="font-bold text-lg">{{ habit.name }}</h3>
+                </div>
+                
+                <div class="flex space-x-2">
+                  <button class="btn btn-sm btn-error" (click)="confirmDelete(habit)">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+              
+              <div class="text-sm opacity-70">
+                <p>Created: {{ habit.createdAt | date:'MMM dd, yyyy' }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Delete Confirmation Modal -->
+  <div class="modal" [class.modal-open]="showDeleteModal">
+    <div class="modal-box">
+      <h3 class="font-bold text-lg">Delete Habit</h3>
+      <p class="py-4">
+        Are you sure you want to delete the habit "{{ habitToDelete?.name }}"?
+        <br>
+        <span class="text-error font-semibold">This action cannot be undone.</span>
+      </p>
+      <div class="modal-action">
+        <button class="btn btn-ghost" (click)="cancelDelete()">Cancel</button>
+        <button class="btn btn-error" (click)="deleteHabit()">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+          </svg>
+          Delete
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div class="fixed bottom-4 right-4 z-50 w-full max-w-xs" *ngIf="showToast">
+    <div class="alert shadow-lg" [ngClass]="{
+      'alert-success': toastType === 'success',
+      'alert-error': toastType === 'error'
+    }">
+      <div>
+        <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current flex-shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <span>{{ toastMessage }}</span>
+      </div>
+    </div>
+  </div>
+</div>

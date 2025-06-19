@@ -1,0 +1,45 @@
+/* Radial Progress */
+.radial-progress {
+  --value: 0;
+  --size: 4rem;
+  --thickness: 0.5rem;
+  
+  @apply rounded-full flex items-center justify-center bg-base-200;
+  background: conic-gradient(
+    currentColor 0% calc(var(--value) * 1%),
+    transparent calc(var(--value) * 1%) 100%
+  );
+  width: var(--size);
+  height: var(--size);
+  
+  &::before {
+    content: '';
+    @apply absolute w-[calc(100%-var(--thickness))] h-[calc(100%-var(--thickness))] rounded-full bg-base-100;
+  }
+  
+  > * {
+    @apply relative z-10;
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .radial-progress {
+    --size: 3.5rem;
+    --thickness: 0.4rem;
+  }
+  
+  .stat-value {
+    @apply text-2xl;
+  }
+}
+
+/* Animation for the progress ring */
+@keyframes progress {
+  from { --value: 0; }
+  to { --value: 100; }
+}
+
+.animate-progress {
+  animation: progress 1s ease-out forwards;
+}
