@@ -416,10 +416,14 @@ export class HabitService {
     const result = [];
     const currentDate = new Date(startDate);
     
-    // Generate data for 7 days starting from startDate
+    // Ensure we start from Monday (day 1 in getDay() where 0 is Sunday)
+    const dayOfWeek = currentDate.getDay();
+    const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek; // Adjust to get to Monday
+    
+    // Generate data for 7 days starting from Monday
     for (let i = 0; i < 7; i++) {
       const date = new Date(currentDate);
-      date.setDate(date.getDate() + i);
+      date.setDate(date.getDate() + mondayOffset + i);
       
       // Normalize dates for comparison
       const normalizeDate = (d: Date) => {

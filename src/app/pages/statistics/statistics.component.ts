@@ -90,9 +90,11 @@ export class StatisticsComponent implements OnInit {
   loadWeeklyData(): void {
     if (!this.selectedHabit) return;
     
-    // Get the start of the current week (Sunday)
+    // Get the start of the current week (Monday)
     const startOfWeek = new Date(this.currentDate);
-    startOfWeek.setDate(this.currentDate.getDate() - this.currentDate.getDay());
+    const day = startOfWeek.getDay(); // 0 (Sunday) to 6 (Saturday)
+    const diff = startOfWeek.getDate() - day + (day === 0 ? -6 : 1); // Adjust to Monday
+    const monday = new Date(startOfWeek.setDate(diff));
     
     // Create a new observable that will update when the habits change
     this.weeklyData$ = this.habits$.pipe(
@@ -100,8 +102,18 @@ export class StatisticsComponent implements OnInit {
         const currentHabit = habits.find((h: Habit) => h.id === this.selectedHabit?.id);
         if (!currentHabit) return of([]);
         
-        return this.habitService.getWeeklyData(currentHabit, startOfWeek).pipe(
+        return this.habitService.getWeeklyData(currentHabit, monday).pipe(
           map(weekData => {
+            // Ensure we have exactly 7 days (Monday to Sunday)
+            while (weekData.length < 7) {
+              const lastDate = new Date(weekData[weekData.length - 1].date);
+              lastDate.setDate(lastDate.getDate() + 1);
+              weekData.push({
+                date: new Date(lastDate),
+                completed: false
+              });
+            }
+            
             // Add the habit's color to each day's data
             return weekData.map(day => ({
               ...day,
