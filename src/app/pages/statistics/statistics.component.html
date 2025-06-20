@@ -52,9 +52,9 @@
         
         <ng-template #hasHabits>
           <div class="mb-6">
-            <div class="flex items-center mb-4">
+            <div class="flex flex-wrap gap-2 mb-4">
               <ng-container *ngFor="let habit of habits">
-                <div class="mr-2 cursor-pointer" (click)="selectHabit(habit)">
+                <div class="cursor-pointer" (click)="selectHabit(habit)">
                   <div 
                     class="w-12 h-12 flex items-center justify-center rounded-lg" 
                     [style.background-color]="habit.color"
