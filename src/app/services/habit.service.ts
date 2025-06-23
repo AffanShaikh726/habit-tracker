@@ -325,67 +325,97 @@ export class HabitService {
   private calculateStreaks(completions: HabitCompletion[]): { currentStreak: number, bestStreak: number } {
     if (!completions.length) return { currentStreak: 0, bestStreak: 0 };
     
-    // Sort completions by date (newest first)
-    const sortedCompletions = [...completions].sort((a, b) => b.date.getTime() - a.date.getTime());
+    // Normalize dates to compare only year, month, day
+    const normalizeDate = (date: Date): string => {
+      const d = new Date(date);
+      return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+    };
     
+    // Filter only completed items and sort by date (newest first)
+    const completedItems = completions
+      .filter(c => c.completed)
+      .map(c => ({
+        ...c,
+        normalizedDate: normalizeDate(c.date)
+      }))
+      .sort((a, b) => b.date.getTime() - a.date.getTime());
+    
+    if (completedItems.length === 0) return { currentStreak: 0, bestStreak: 0 };
+    
+    // Group by normalized date to handle multiple entries on the same day
+    const uniqueDates = new Set<string>();
+    completedItems.forEach(item => uniqueDates.add(item.normalizedDate));
+    
+    // Convert to array of dates and sort (newest first)
+    const sortedDates = Array.from(uniqueDates)
+      .map(dateStr => {
+        const [year, month, day] = dateStr.split('-').map(Number);
+        return new Date(year, month, day);
+      })
+      .sort((a, b) => b.getTime() - a.getTime());
+    
+    // Get today's date for comparison
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    // Calculate current streak
     let currentStreak = 0;
     let bestStreak = 0;
-    let tempStreak = 0;
-    let lastDate: Date | null = null;
     
-    // Calculate current streak (consecutive days from today/most recent)
-    for (const completion of sortedCompletions) {
-      if (!completion.completed) continue;
+    // Check if the most recent completion is today
+    const mostRecentDate = new Date(sortedDates[0]);
+    mostRecentDate.setHours(0, 0, 0, 0);
+    
+    // Calculate days between today and most recent completion
+    const daysSinceLastCompletion = Math.round((today.getTime() - mostRecentDate.getTime()) / (1000 * 60 * 60 * 24));
+    
+    // Start current streak calculation
+    if (daysSinceLastCompletion <= 1) { // Today or yesterday
+      currentStreak = 1;
       
-      const currentDate = new Date(completion.date);
+      // Check for consecutive days before today/yesterday
+      let prevDate = mostRecentDate;
       
-      if (!lastDate) {
-        // First completed date
-        lastDate = currentDate;
-        currentStreak = 1;
-        continue;
-      }
-      
-      // Check if this completion is consecutive to the last one
-      const dayDiff = Math.floor((lastDate.getTime() - currentDate.getTime()) / (1000 * 60 * 60 * 24));
-      
-      if (dayDiff === 1) {
-        // Consecutive day
-        currentStreak++;
-        lastDate = currentDate;
-      } else if (dayDiff > 1) {
-        // Streak broken
-        break;
+      for (let i = 1; i < sortedDates.length; i++) {
+        const currentDate = new Date(sortedDates[i]);
+        currentDate.setHours(0, 0, 0, 0);
+        
+        // Calculate days between dates
+        const dayDiff = Math.round((prevDate.getTime() - currentDate.getTime()) / (1000 * 60 * 60 * 24));
+        
+        if (dayDiff === 1) {
+          // Consecutive day
+          currentStreak++;
+          prevDate = currentDate;
+        } else {
+          // Gap found, stop counting current streak
+          break;
+        }
       }
     }
     
     // Calculate best streak
-    lastDate = null;
-    for (const completion of sortedCompletions) {
-      if (!completion.completed) continue;
+    if (sortedDates.length > 0) {
+      let tempStreak = 1;
+      bestStreak = 1;
       
-      const currentDate = new Date(completion.date);
-      
-      if (!lastDate) {
-        // First completed date
-        lastDate = currentDate;
-        tempStreak = 1;
-        bestStreak = Math.max(bestStreak, tempStreak);
-        continue;
-      }
-      
-      // Check if this completion is consecutive to the last one
-      const dayDiff = Math.floor((lastDate.getTime() - currentDate.getTime()) / (1000 * 60 * 60 * 24));
-      
-      if (dayDiff === 1) {
-        // Consecutive day
-        tempStreak++;
-        bestStreak = Math.max(bestStreak, tempStreak);
-        lastDate = currentDate;
-      } else if (dayDiff > 1) {
-        // Streak broken
-        tempStreak = 1;
-        lastDate = currentDate;
+      for (let i = 0; i < sortedDates.length - 1; i++) {
+        const currentDate = new Date(sortedDates[i]);
+        const nextDate = new Date(sortedDates[i + 1]);
+        currentDate.setHours(0, 0, 0, 0);
+        nextDate.setHours(0, 0, 0, 0);
+        
+        // Calculate days between dates
+        const dayDiff = Math.round((currentDate.getTime() - nextDate.getTime()) / (1000 * 60 * 60 * 24));
+        
+        if (dayDiff === 1) {
+          // Consecutive day
+          tempStreak++;
+          bestStreak = Math.max(bestStreak, tempStreak);
+        } else {
+          // Gap found, reset temp streak
+          tempStreak = 1;
+        }
       }
     }
     
